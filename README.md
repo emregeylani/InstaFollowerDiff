@@ -33,5 +33,5 @@ bash
 python3 diff.py
 
 ### 5. Results
-Results will be viewed in result.html in the same directory.
+Results can be viewed in result.html in the same directory.
 

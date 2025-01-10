@@ -1,39 +1,28 @@
-import re
+import json
 
-def parse_instagram_file(file_path):
+def parse_instagram_json(followers_file, following_file):
     try:
-        with open(file_path, 'r') as file:
-            lines = file.readlines()
-    except FileNotFoundError:
-        print("Error: insta_folks.txt File not found.")
+        with open(followers_file, 'r') as file:
+            followers_data = json.load(file)
+        with open(following_file, 'r') as file:
+            following_data = json.load(file)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
         return None
 
-    # Locate section headers
-    try:
-        following_index = lines.index("Following\n")
-        followers_index = lines.index("Followers\n")
-    except ValueError:
-        print("Error: 'Following' or 'Followers' headers not found in the file.")
-        return None
-
-    # Separate Following and Followers sections
-    following = set()
+    # Extract followers from JSON
     followers = set()
+    for entry in followers_data:
+        string_list_data = entry.get("string_list_data", [])
+        for item in string_list_data:
+            followers.add(item.get("value", ""))
 
-    # Regex to identify date patterns
-    date_pattern = re.compile(r'^[A-Za-z]{3} \d{2}, \d{4} \d{1,2}:\d{2} (am|pm)$')
-
-    # Extract Following usernames
-    for line in lines[following_index + 1:followers_index]:
-        username = line.strip()
-        if username and not date_pattern.match(username):  # Skip dates and empty lines
-            following.add(username)
-
-    # Extract Followers usernames
-    for line in lines[followers_index + 1:]:
-        username = line.strip()
-        if username and not date_pattern.match(username):  # Skip dates and empty lines
-            followers.add(username)
+    # Extract following from JSON
+    following = set()
+    for entry in following_data.get("relationships_following", []):
+        string_list_data = entry.get("string_list_data", [])
+        for item in string_list_data:
+            following.add(item.get("value", ""))
 
     return following, followers
 
@@ -45,33 +34,58 @@ def find_differences(following, followers):
 def save_results_to_html(not_following_back, not_followed_by_you):
     with open("result.html", "w") as file:
         file.write("<html><head><style>")
-        file.write("body { background-color: black; color: white; font-family: Arial, sans-serif; }\n")
-        file.write(".container { display: flex; justify-content: space-between; }\n")
-        file.write(".column { width: 48%; }\n")
-        file.write("a { color: #1E90FF; text-decoration: none; }\n")
-        file.write("a:hover { text-decoration: underline; }\n")
+        file.write("""
+            body {
+                background-color: black;
+                color: white;
+                font-family: sans-serif;
+                margin: 0;
+                padding: 20px;
+            }
+            .container {
+                display: flex;
+                justify-content: space-between;
+            }
+            .column {
+                width: 48%;
+            }
+            .user {
+                margin: 5px 0;
+            }
+            a {
+                color: cyan;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        """)
         file.write("</style></head><body>\n")
 
         file.write("<div class='container'>\n")
-
+        # First column: Users you follow but don't follow you back
         file.write("<div class='column'>\n")
-        file.write("<h2>Users you follow but don't follow you back:</h2>\n<ul>\n")
+        file.write("<h2>Users you follow but don't follow you back:</h2>\n")
         for user in not_following_back:
-            file.write(f"<li><a href='https://instagram.com/{user}' target='_blank'>{user}</a></li>\n")
-        file.write("</ul>\n</div>\n")
+            file.write(f"<div class='user'><a href='https://instagram.com/{user}' target='_blank'>{user}</a></div>\n")
+        file.write("</div>\n")
 
+        # Second column: Users who follow you but you don't follow back
         file.write("<div class='column'>\n")
-        file.write("<h2>Users who follow you but you don't follow back:</h2>\n<ul>\n")
+        file.write("<h2>Users who follow you but you don't follow back:</h2>\n")
         for user in not_followed_by_you:
-            file.write(f"<li><a href='https://instagram.com/{user}' target='_blank'>{user}</a></li>\n")
-        file.write("</ul>\n</div>\n")
+            file.write(f"<div class='user'><a href='https://instagram.com/{user}' target='_blank'>{user}</a></div>\n")
+        file.write("</div>\n")
 
         file.write("</div>\n")
         file.write("</body></html>\n")
 
+
 def main():
-    file_path = "insta_folks.txt"  # Change the file name here
-    result = parse_instagram_file(file_path)
+    followers_file = "connections/followers_and_following/followers_1.json"  
+    following_file = "connections/followers_and_following/following.json"  
+
+    result = parse_instagram_json(followers_file, following_file)
 
     if result:
         following, followers = result
@@ -81,9 +95,7 @@ def main():
 
         # Save results to an HTML file
         save_results_to_html(not_following_back, not_followed_by_you)
-
-        print("Done! result.html is ready.")
-
+        print("Done! result.html is ready")
 
 if __name__ == "__main__":
     main()

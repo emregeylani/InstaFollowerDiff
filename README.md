@@ -16,6 +16,9 @@ Follow these steps to request your data from Instagram:
   - Select *"All Time"* for *Date Range*.
   - Choose *"Format"* as *JSON*.
   - Hit the *[Create files]* button.
+ 
+  ![image](https://github.com/user-attachments/assets/e7d95478-c186-4ab0-b765-52150066a6ea)
+
 
 Instagram will take a few hours to prepare files under the *Download your information* page you previously visited under *Your activity*.
 

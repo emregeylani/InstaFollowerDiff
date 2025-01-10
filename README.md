@@ -32,8 +32,10 @@ Unzip the downloaded zip file under the InstaFollowerDiff directory.
 
 ### 4. Run the Script
 Make sure you have Python 3 installed. Then, run the script as follows:
-bash
+```bash
+cd InstaFollowerDiff
 python3 diff.py
+```
 
 ### 5. Results
 Results can be viewed in result.html in the same directory.
